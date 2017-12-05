@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "284871609581",
+    "firebase_url": "https://roadwatch-35ef0.firebaseio.com",
+    "project_id": "roadwatch-35ef0",
+    "storage_bucket": "roadwatch-35ef0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:284871609581:android:ef04a8c61e4bd3be",
+        "android_client_info": {
+          "package_name": "com.example.derrickdowuona.roadwatch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "284871609581-ut3qvmjcgrloevp77c4cc45t5ssceo1h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.derrickdowuona.roadwatch",
+            "certificate_hash": "31661cb5647bc7ff11ca79b833b0caf1b57aa768"
+          }
+        },
+        {
+          "client_id": "284871609581-j1bh37dea0kb6lp64uvvo2s114avpno9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAe4U2GGDIhqTGP7bWKM1WS0j5lT0H3FSw"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "284871609581-j1bh37dea0kb6lp64uvvo2s114avpno9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -2,6 +2,7 @@ package com.example.derrickdowuona.roadwatch;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -16,6 +17,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -71,7 +73,8 @@ public class HomePage extends AppCompatActivity {
             @Override
             public void onClick(View view)
             {
-                //
+                Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(intent, 0);
             }
         });
     }//onCreate
@@ -90,7 +93,7 @@ public class HomePage extends AppCompatActivity {
             }
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Log.w(TAG, "PHOTOFILE NOT NULL");
+                Log.w(TAG, "PHOTOFILE GOOD");
                 Uri photoURI = FileProvider.getUriForFile(this,
                         "com.example.android.fileprovider",
                         photoFile);
@@ -109,10 +112,10 @@ public class HomePage extends AppCompatActivity {
     {
         if(resultCode != RESULT_CANCELED)
         {
+            //camera mode
             Log.w(TAG, "DATA TO STRIG::::"+ data.toString());
             if (requestCode == REQUEST_IMAGE_CAPTURE && data != null) {
 //                Bundle extras = data.getExtras();
-                Log.w(TAG, "DATA TO STRIG::::"+ data.toString());
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
                 imgView.setImageBitmap(photo);
             }
@@ -120,6 +123,18 @@ public class HomePage extends AppCompatActivity {
             {
                 Log.w(TAG, "FAILED TO SAVE");
             }
+        }
+
+        //select image mode
+        Uri targetUri = data.getData();
+        imgURi.setText(targetUri.toString());
+        Bitmap bitmap;
+        try {
+            bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(targetUri));
+            imgView.setImageBitmap(bitmap);
+        } catch (FileNotFoundException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
         }
 
     }
