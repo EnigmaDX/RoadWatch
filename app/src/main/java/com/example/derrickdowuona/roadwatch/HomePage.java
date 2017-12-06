@@ -1,5 +1,6 @@
 package com.example.derrickdowuona.roadwatch;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,10 +16,18 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -31,6 +40,9 @@ public class HomePage extends AppCompatActivity {
     Button uploadImg;
     Button btnTakePhoto;
     String mCurrentPhotoPath;
+    StorageReference mStorageRef;
+    ProgressDialog mProgress;
+
     static final int REQUEST_IMAGE_CAPTURE  = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
     private static final String TAG = HomePage.class.getSimpleName();
@@ -41,6 +53,9 @@ public class HomePage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
 
+        mStorageRef = FirebaseStorage.getInstance().getReference();
+
+        mProgress = new ProgressDialog(this);
 
         //get data from prev activity and display
         Intent intent = getIntent();
@@ -80,30 +95,14 @@ public class HomePage extends AppCompatActivity {
     }//onCreate
 
 
-    private void dispatchTakePictureIntent() {
+    private void dispatchTakePictureIntent()
+    {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
         // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                Log.w(TAG, "COULD NOT CREATE FILE");
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Log.w(TAG, "PHOTOFILE GOOD");
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        "com.example.android.fileprovider",
-                        photoFile);
-                Log.w(TAG,  "photouri::::::" + photoURI.toString());
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
-            else{
-                Log.w(TAG, "PHOTO URI NOT FOUND");
-            }
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null)
+        {
+            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
         }
     }
 
@@ -113,9 +112,25 @@ public class HomePage extends AppCompatActivity {
         if(resultCode != RESULT_CANCELED)
         {
             //camera mode
-            Log.w(TAG, "DATA TO STRIG::::"+ data.toString());
-            if (requestCode == REQUEST_IMAGE_CAPTURE && data != null) {
-//                Bundle extras = data.getExtras();
+            Log.w(TAG, "DATA TO STRING::::"+ data.toString());
+
+            if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK)
+            {
+                mProgress.setMessage("Uploading image");
+                mProgress.show();
+                Log.w(TAG, "DATA TO STRING::::"+ data.toString());
+                Uri uri = data.getData();
+                StorageReference filepath = mStorageRef.child("Photos").child(uri.getLastPathSegment());
+                filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
+                {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        mProgress.dismiss();
+                        Toast.makeText(HomePage.this,  "Upload Successful", Toast.LENGTH_LONG).show();
+                    }
+                });
+
+
                 Bitmap photo = (Bitmap) data.getExtras().get("data");
                 imgView.setImageBitmap(photo);
             }
@@ -153,6 +168,7 @@ public class HomePage extends AppCompatActivity {
 
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
+        Log.w(TAG, "CurrentPath: " + mCurrentPhotoPath);
         return image;
     }
 }

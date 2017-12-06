@@ -37,8 +37,7 @@ public class RegisterActivity extends AppCompatActivity {
     private Button buttonSend;
 
     private FirebaseAuth mAuth;
-    private FirebaseDatabase mDatabase;
-    private DatabaseReference myRef;
+
 
     public PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
 
@@ -54,8 +53,6 @@ public class RegisterActivity extends AppCompatActivity {
         buttonSend = findViewById(R.id.btnReg);
 
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance();
-        myRef = mDatabase.getReference("user");
 
         buttonSend.setOnClickListener(new View.OnClickListener()
         {
@@ -96,43 +93,23 @@ public class RegisterActivity extends AppCompatActivity {
 
         if(!TextUtils.isEmpty(usernameStr) || !TextUtils.isEmpty(emailStr))
         {
-            Intent intent = new Intent(RegisterActivity.this, HomePage.class);
+            Intent intentConfirm = new Intent(RegisterActivity.this, ConfirmReg.class);
             Bundle extras = new Bundle();
             extras.putString("USERNAME",usernameStr);
             extras.putString("EMAIL",emailStr);
             extras.putInt("PHONE",phoneInt);
             extras.putInt("AGE",ageInt);
 
-            intent.putExtras(extras);
-            startActivity(intent);
+            intentConfirm.putExtras(extras);
+            startActivity(intentConfirm);
 
             Log.w(TAG, "Numbersssssss: " + phoneInt + " AGE:: " + ageInt);
-            writeNewUser(usernameStr, emailStr, phoneInt, ageInt);
         }
         else
         {
             Toast.makeText(RegisterActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
         }
-
-
-
     }
-
-    ///USER
-    public void writeNewUser(String name, String email, int phone, int age)
-    {
-        Users user = new Users(name, email, phone, age);
-
-        String uid = myRef.push().getKey();
-
-        myRef.child(uid).setValue(user);
-
-        Log.w(TAG, "USER DETAILS===================" + user.toString());
-
-        Toast.makeText(RegisterActivity.this, user.toString(), Toast.LENGTH_SHORT).show();
-
-    }
-
 
 
 

@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.derrickdowuona.roadwatch">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.MANAGE_DOCUMENTS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -29,6 +30,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".ConfirmReg" />
         <activity android:name=".HomePage" />
 
         <provider
@@ -41,7 +43,7 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <activity android:name=".ConfirmReg"></activity>
+        <activity android:name=".UploadImg"></activity>
     </application>
 
 </manifest>

@@ -8,4 +8,8 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="roadwatchtheme" parent="AppTheme" >
+        <item name="colorPrimary">@android:color/holo_blue_bright</item>
+    </style>
+
 </resources>
