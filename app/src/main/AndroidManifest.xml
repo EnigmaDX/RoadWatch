@@ -41,6 +41,7 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
+        <activity android:name=".ConfirmReg"></activity>
     </application>
 
 </manifest>
