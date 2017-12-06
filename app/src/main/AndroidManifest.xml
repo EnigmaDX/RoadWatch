@@ -41,7 +41,6 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <activity android:name=".MainActivity"></activity>
     </application>
 
 </manifest>

@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -19,19 +20,12 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.concurrent.TimeUnit;
 
 public class RegisterActivity extends AppCompatActivity {
-
-    private static final int STATE_INITIALIZED = 1;
-    private static final int STATE_CODE_SENT = 2;
-    private static final int STATE_VERIFY_FAILED = 3;
-    private static final int STATE_VERIFY_SUCCESS = 4;
-    private static final int STATE_SIGNIN_FAILED = 5;
-    private static final int STATE_SIGNIN_SUCCESS = 6;
-
-    private String mVerificationId;
 
     private static final String TAG = RegisterActivity.class.getSimpleName();
 
@@ -42,10 +36,10 @@ public class RegisterActivity extends AppCompatActivity {
     private Button buttonSend;
 
     private FirebaseAuth mAuth;
+    private FirebaseDatabase mDatabase;
+    private DatabaseReference myRef;
 
     public PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
-    private boolean mVerificationInProgress = false;
-    private PhoneAuthProvider.ForceResendingToken mResendToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,59 +53,71 @@ public class RegisterActivity extends AppCompatActivity {
         buttonSend = findViewById(R.id.btnReg);
 
         mAuth = FirebaseAuth.getInstance();
-
-        String usernameStr = username.getText().toString();
-        String emailStr = email.getText().toString();
-        String phoneStr = phone.getText().toString();
-        String ageStr = age.getText().toString();
+        mDatabase = FirebaseDatabase.getInstance();
+        myRef = mDatabase.getReference("user");
 
         buttonSend.setOnClickListener(new View.OnClickListener()
         {
             @Override
-            public void onClick(View view) {
+            public void onClick(View view)
+            {
                 verifyAndSendData();
             }
         });
+    }
 
+    ///USER
+    public void writeNewUser(String name, String email, int phone, int age) {
+        Users user = new Users(name, email, phone, age);
+        Log.w(TAG, "USER DETAILS===================" + user.toString());
+        Toast.makeText(RegisterActivity.this, user.toString(), Toast.LENGTH_SHORT).show();
+        myRef.setValue(user);
     }
     //END onCreate
 
     public void verifyAndSendData()
     {
-        String usernameStr = username.getText().toString();
-        String emailStr = email.getText().toString();
-        String phoneStr = phone.getText().toString();
-        String ageStr = age.getText().toString();
+        final String usernameStr = username.getText().toString();
+        final String emailStr = email.getText().toString();
+        final int phoneInt = Integer.parseInt(phone.getText().toString());
+        final String ageStr = age.getText().toString();
+
+//        int phoneInt = 0;
+        int ageInt = 0;
+//        try{
+//            phoneInt = Integer.parseInt(phoneInt);
+//            Log.i("",phoneInt+" is a number");
+//        }catch(NumberFormatException ex){
+//            Log.w(TAG, "EXCEPTIONNNNNNNNNNN");
+//            Log.i("",phoneInt+" is NOT a number");
+//            ex.printStackTrace();
+//        }
+
+        try{
+             ageInt = Integer.parseInt(ageStr);
+        }catch(NumberFormatException ex){
+            Log.w(TAG, "EXCEPTIONNNNNNNNNNN 2222222");
+            ex.printStackTrace();
+        }
+
 
         Intent intent = new Intent(RegisterActivity.this, HomePage.class);
         Bundle extras = new Bundle();
         extras.putString("USERNAME",usernameStr);
         extras.putString("EMAIL",emailStr);
-        extras.putString("PHONE",phoneStr);
-        extras.putString("AGE",ageStr);
+        extras.putInt("PHONE",phoneInt);
+        extras.putInt("AGE",ageInt);
+
+        Log.w(TAG, "Numbersssssss: " + phoneInt + " AGE:: " + ageInt);
+        writeNewUser(usernameStr, emailStr, phoneInt, ageInt);
 
         //call verify method for phone
-        startPhoneNumberVerification(phoneStr);
+//        startPhoneNumberVerification(phoneStr);
 
         intent.putExtras(extras);
         startActivity(intent);
     }
 
-    ////////////////////////////REGGG
-    private void startPhoneNumberVerification(String phoneNumber) {
-        // [START start_phone_auth]
-        PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                phoneNumber,        // Phone number to verify
-                60,                 // Timeout duration
-                TimeUnit.SECONDS,   // Unit of timeout
-                this,               // Activity (for callback binding)
-                mCallbacks);        // OnVerificationStateChangedCallbacks
-        // [END start_phone_auth]
-
-        mVerificationInProgress = true;
-    }
-
-    ///
 
 
 
