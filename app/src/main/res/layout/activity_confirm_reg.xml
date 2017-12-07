@@ -76,16 +76,18 @@
         android:layout_marginLeft="16dp" />
 
     <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="138dp"
-        android:layout_height="146dp"
+        android:id="@+id/progressBar3"
+        style="@style/Widget.AppCompat.ProgressBar"
+        android:layout_width="182dp"
+        android:layout_height="143dp"
         android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
+        android:indeterminate="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
 </android.support.constraint.ConstraintLayout>

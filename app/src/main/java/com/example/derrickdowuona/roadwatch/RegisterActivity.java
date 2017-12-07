@@ -91,7 +91,7 @@ public class RegisterActivity extends AppCompatActivity {
             ex.printStackTrace();
         }
 
-        if(!TextUtils.isEmpty(usernameStr) || !TextUtils.isEmpty(emailStr))
+        if(!TextUtils.isEmpty(usernameStr) && !TextUtils.isEmpty(emailStr))
         {
             Intent intentConfirm = new Intent(RegisterActivity.this, ConfirmReg.class);
             Bundle extras = new Bundle();
@@ -103,7 +103,6 @@ public class RegisterActivity extends AppCompatActivity {
             intentConfirm.putExtras(extras);
             startActivity(intentConfirm);
 
-            Log.w(TAG, "Numbersssssss: " + phoneInt + " AGE:: " + ageInt);
         }
         else
         {

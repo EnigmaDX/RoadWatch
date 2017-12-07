@@ -39,33 +39,33 @@
     <Button
         android:id="@+id/btnTakePhoto"
         android:layout_width="177dp"
-        android:layout_height="65dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="372dp"
+        android:layout_height="60dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="344dp"
         android:backgroundTint="@android:color/background_light"
         android:text="Take Photo/Video"
         android:textColor="@android:color/holo_blue_bright"
         android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginLeft="8dp" />
+        android:layout_marginLeft="16dp" />
 
     <Button
         android:id="@+id/btnUpload"
         android:layout_width="177dp"
-        android:layout_height="65dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginTop="372dp"
+        android:layout_height="60dp"
+        android:layout_marginEnd="4dp"
+        android:layout_marginTop="344dp"
         android:backgroundTint="@android:color/holo_blue_bright"
         android:text="Upload media"
         android:textColor="@android:color/background_light"
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginRight="8dp" />
+        android:layout_marginRight="4dp" />
 
     <Button
-        android:id="@+id/btnContinue"
+        android:id="@+id/btnPost"
         android:layout_width="wrap_content"
         android:layout_height="62dp"
         android:layout_marginBottom="8dp"
@@ -73,7 +73,7 @@
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:backgroundTint="@android:color/holo_blue_light"
-        android:text="continue"
+        android:text="post report"
         android:textColor="@android:color/background_light"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -93,7 +93,41 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_camera" /><![CDATA[
+        app:srcCompat="@android:drawable/ic_menu_camera" />
+
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="364dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:ems="10"
+        android:hint="enter brief summary/description of report"
+        android:inputType="textMultiLine"
+        app:layout_constraintBottom_toTopOf="@+id/btnPost"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imgUri"
+        app:layout_constraintVertical_bias="0.771" />
+
+    <ProgressBar
+        android:id="@+id/progressBar2"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="145dp"
+        android:layout_height="143dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:progressTint="@android:color/holo_blue_dark"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.42" /><![CDATA[
 
 
 

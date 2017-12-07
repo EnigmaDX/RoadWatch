@@ -1,11 +1,13 @@
 package com.example.derrickdowuona.roadwatch;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -27,9 +29,9 @@ public class ConfirmReg extends AppCompatActivity {
     EditText email;
     EditText password;
     FirebaseAuth mAuth;
-    ProgressBar progressBar;
     private FirebaseDatabase mDatabase;
     private DatabaseReference myRef;
+    ProgressBar mProgressBar;
 
     int phone = 0;
     int age = 0;
@@ -37,19 +39,18 @@ public class ConfirmReg extends AppCompatActivity {
     String userName;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm_reg);
 
-        Log.w(TAG, "ATTN:: CREATED CONFIRM REGISTER PAGE");
+        mProgressBar = findViewById(R.id.progressBar3);
+        mProgressBar.setVisibility(View.GONE);
 
         mAuth = FirebaseAuth.getInstance();
 
         mDatabase = FirebaseDatabase.getInstance();
         myRef = mDatabase.getReference("user");
-
-        progressBar = findViewById(R.id.progressBar);
-        progressBar.setVisibility(View.GONE);
 
         //get data from prev activity and display
         Intent intent = getIntent();
@@ -72,7 +73,9 @@ public class ConfirmReg extends AppCompatActivity {
 
     public void signInUserClick(View view)
     {
-        progressBar.setVisibility(View.VISIBLE);
+        mProgressBar.setVisibility(View.VISIBLE);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
         createUser();
     }
 
@@ -98,18 +101,24 @@ public class ConfirmReg extends AppCompatActivity {
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
+                        if (task.isSuccessful())
+                        {
                             // Sign in success, update UI with the signed-in user's information
-                            Toast.makeText(ConfirmReg.this, "Successful Sign in", Toast.LENGTH_SHORT).show();
-                            FirebaseUser user = mAuth.getCurrentUser();
-                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(ConfirmReg.this, "SUCCESSFULLY REGISTERED", Toast.LENGTH_SHORT).show();
+
+//                            FirebaseUser user = mAuth.getCurrentUser();
+                            mProgressBar.setVisibility(View.GONE);
+
                             signInUser(userName, emailStr, phone, age);
-                        } else {
+                        }
+                        else
+                            {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
                             Toast.makeText(ConfirmReg.this, "Authentication failed.",
                                     Toast.LENGTH_SHORT).show();
-                            progressBar.setVisibility(View.GONE);
+                                mProgressBar.setVisibility(View.GONE);
+//                                getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
                         }
 
                         // ...
@@ -128,7 +137,8 @@ public class ConfirmReg extends AppCompatActivity {
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
+                        if (task.isSuccessful())
+                        {
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "SIGNIN SUCCESS");
                             Toast.makeText(ConfirmReg.this, "Successful Sign in", Toast.LENGTH_SHORT).show();
@@ -136,7 +146,9 @@ public class ConfirmReg extends AppCompatActivity {
 
                             sendData(username, emailStr, phone, age);
                             writeNewUser(username, emailStr, phone, age);
-                        } else {
+                        }
+                        else
+                            {
                             // If sign in fails, display a message to the user.
                             Log.w(TAG, "SIGNIN FAILURE", task.getException());
                             Toast.makeText(ConfirmReg.this, "Authentication failed.",
@@ -171,8 +183,6 @@ public class ConfirmReg extends AppCompatActivity {
         myRef.child(uid).setValue(user);
 
         Log.w(TAG, "USER DETAILS===================" + user.toString());
-
-        Toast.makeText(ConfirmReg.this, user.toString(), Toast.LENGTH_SHORT).show();
     }
 
 
