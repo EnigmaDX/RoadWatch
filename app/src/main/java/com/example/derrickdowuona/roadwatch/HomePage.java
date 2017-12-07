@@ -10,14 +10,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -33,7 +37,10 @@ public class HomePage extends AppCompatActivity
     Button uploadImg;
     Button btnTakePhoto;
     Button postBtn;
+    ProgressBar mProgressBar;
     String mCurrentPhotoPath;
+    FirebaseAuth mAuth;
+    FirebaseUser currentUser;
     FirebaseStorage storage;
     StorageReference storageRef;
     private Uri uri;
@@ -49,8 +56,12 @@ public class HomePage extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
 
+        mAuth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
         storageRef = storage.getReference("photos");
+
+        mProgressBar = findViewById(R.id.progressBar2);
+        mProgressBar.setVisibility(View.GONE);
 
         //assign all components id
         uname = findViewById(R.id.uName);
@@ -95,30 +106,50 @@ public class HomePage extends AppCompatActivity
             @Override
             public void onClick(View view)
             {
-                //get file path of selected image and upload to storage on firebase
-                StorageReference filepath = storageRef.child("photos").child(uri.getLastPathSegment());
-                filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
+                if (imgView.getDrawable() == null || uri == null)
                 {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
-                    {
-                        Toast.makeText(HomePage.this,  "Upload Successful", Toast.LENGTH_LONG).show();
-                    }
-                });
-                //
-                filepath.putFile(uri).addOnFailureListener(new OnFailureListener()
+                    Toast.makeText(HomePage.this,  "Please upload an image first", Toast.LENGTH_LONG).show();
+                }
+                else
                 {
-                    @Override
-                    public void onFailure(@NonNull Exception exception)
+                    mProgressBar.setVisibility(View.VISIBLE);
+                    getWindow().setFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE,
+                            WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+                    //get file path of selected image and upload to storage on firebase
+                    currentUser = mAuth.getCurrentUser();
+                    String uid = currentUser.getUid();
+                    StorageReference filepath = storageRef.child("photos/" + uid + "/").child(uri.getLastPathSegment());
+                    filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
                     {
-                        // Handle unsuccessful uploads
-                        Toast.makeText(HomePage.this,  "FAILED TO UPLOAD", Toast.LENGTH_LONG).show();
-                    }
-                });
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
+                        {
+                            mProgressBar.setVisibility(View.GONE);
+                            Toast.makeText(HomePage.this,  "Upload Successful", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    //
+                    filepath.putFile(uri).addOnFailureListener(new OnFailureListener()
+                    {
+                        @Override
+                        public void onFailure(@NonNull Exception exception)
+                        {
+                            // Handle unsuccessful uploads
+                            Toast.makeText(HomePage.this,  "FAILED TO UPLOAD", Toast.LENGTH_LONG).show();
+                        }
+                    });
+                }
             }
         });
 
     }//onCreate
+
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        currentUser = mAuth.getCurrentUser();
+    }
 
 
     private void dispatchTakePictureIntent()
@@ -139,6 +170,8 @@ public class HomePage extends AppCompatActivity
     {
         if(resultCode != RESULT_CANCELED)
         {
+            mProgressBar.setVisibility(View.GONE);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
             //CAMERA
             if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK)
             {
@@ -197,6 +230,8 @@ public class HomePage extends AppCompatActivity
          });
          */
     }
+
+//    public void uploadImage()
 
     public void continueToUpload(Bitmap bitmapImg)
     {
