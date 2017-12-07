@@ -35,7 +35,7 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText phone;
     private EditText age;
     private Button buttonSend;
-
+    private FirebaseUser currentUser;
     private FirebaseAuth mAuth;
 
 
@@ -62,9 +62,26 @@ public class RegisterActivity extends AppCompatActivity {
                 verifyAndSendData();
             }
         });
-    }
+    }//END onCreate
 
-    //END onCreate
+
+//    @Override
+//    public void onStart() {
+//        super.onStart();
+//        // If user is signed in, got to homepage and never return here again!!
+//        currentUser = mAuth.getCurrentUser();
+//        if(currentUser != null)
+//        {
+//            Intent homeIntent = new Intent(RegisterActivity.this, HomePage.class);
+//            String userName = currentUser.getDisplayName();
+//
+//            Bundle extras = new Bundle();
+//            extras.putString("USERNAME",userName);
+//            homeIntent.putExtras(extras);
+//            startActivity(homeIntent);
+//            finish();
+//        }
+//    }
 
     public void verifyAndSendData()
     {
@@ -79,7 +96,6 @@ public class RegisterActivity extends AppCompatActivity {
             phoneInt = Integer.parseInt(phoneStr);
             Log.i("",phoneInt+" is a number");
         }catch(NumberFormatException ex){
-            Log.w(TAG, "EXCEPTIONNNNNNNNNNN");
             Log.i("",phoneInt+" is NOT a number");
             ex.printStackTrace();
         }
@@ -87,11 +103,11 @@ public class RegisterActivity extends AppCompatActivity {
         try{
              ageInt = Integer.parseInt(ageStr);
         }catch(NumberFormatException ex){
-            Log.w(TAG, "EXCEPTIONNNNNNNNNNN 2222222");
+            Log.i("",ageInt+" is NOT a number");
             ex.printStackTrace();
         }
 
-        if(!TextUtils.isEmpty(usernameStr) && !TextUtils.isEmpty(emailStr))
+        if(!(usernameStr.equals("")) && !(emailStr.equals("")) && !(phoneStr.equals("")) && !(ageStr.equals("")))
         {
             Intent intentConfirm = new Intent(RegisterActivity.this, ConfirmReg.class);
             Bundle extras = new Bundle();
@@ -102,7 +118,7 @@ public class RegisterActivity extends AppCompatActivity {
 
             intentConfirm.putExtras(extras);
             startActivity(intentConfirm);
-
+            finish();
         }
         else
         {

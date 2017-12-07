@@ -25,16 +25,14 @@
         android:id="@+id/btnReg"
         android:layout_width="126dp"
         android:layout_height="77dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginEnd="40dp"
+        android:layout_marginTop="416dp"
         android:backgroundTint="@android:color/holo_blue_light"
-        android:text="Register"
+        android:text="signup"
         android:textColor="@android:color/background_light"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/txtAge" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <EditText
         android:id="@+id/txtEmail"
@@ -99,6 +97,21 @@
         android:layout_marginTop="88dp"
         android:text="Enter details to register"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnLogin"
+        android:layout_width="126dp"
+        android:layout_height="77dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="416dp"
+        android:backgroundTint="@android:color/holo_blue_bright"
+        android:text="Sign in"
+        android:textColor="@color/common_google_signin_btn_text_dark_default"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toStartOf="@+id/btnReg"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

@@ -32,11 +32,11 @@
             </intent-filter>
         </activity>
         <activity android:name=".ConfirmReg" />
-        <activity android:name=".HomePage" />
+        <activity android:name=".ReportPage" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.example.android.fileprovider"
+            android:authorities="com.example.derrickdowuona.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
@@ -44,7 +44,8 @@
                 android:resource="@xml/provider_paths" />
         </provider>
 
-        <activity android:name=".UploadImg"></activity>
+        <activity android:name=".UploadImg" />
+        <activity android:name=".HomePage"></activity>
     </application>
 
 </manifest>
