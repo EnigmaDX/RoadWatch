@@ -34,6 +34,7 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText email;
     private EditText phone;
     private EditText age;
+    private EditText organisation;
     private Button buttonSend;
     private FirebaseUser currentUser;
     private FirebaseAuth mAuth;
@@ -50,6 +51,7 @@ public class RegisterActivity extends AppCompatActivity {
         email    = findViewById(R.id.txtEmail);
         phone    = findViewById(R.id.txtPhone);
         age      = findViewById(R.id.txtAge);
+        organisation = findViewById(R.id.txtOrg);
         buttonSend = findViewById(R.id.btnReg);
 
         mAuth = FirebaseAuth.getInstance();
@@ -89,6 +91,7 @@ public class RegisterActivity extends AppCompatActivity {
         final String emailStr = email.getText().toString();
         final String phoneStr = phone.getText().toString();
         final String ageStr = age.getText().toString();
+        final String organisationStr = organisation.getText().toString();
 
         int phoneInt = 0;
         int ageInt = 0;
@@ -115,6 +118,7 @@ public class RegisterActivity extends AppCompatActivity {
             extras.putString("EMAIL",emailStr);
             extras.putInt("PHONE",phoneInt);
             extras.putInt("AGE",ageInt);
+            extras.putString("ORG",organisationStr);
 
             intentConfirm.putExtras(extras);
             startActivity(intentConfirm);

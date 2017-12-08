@@ -10,13 +10,15 @@ public class Users {
     private String email;
     private int phoneNum;
     private int age;
+    private  String organisation;
 
-    public Users(String uname, String em, int phone, int agee)
+    public Users(String uname, String em, int phone, int agee, String org)
     {
         name = uname;
         email = em;
         phoneNum = phone;
         age = agee;
+        organisation = org;
     }
 
     public String getName()
@@ -24,25 +26,30 @@ public class Users {
         return name;
     }
 
-    public String getEmail()
+    private String getEmail()
     {
         return email;
     }
 
-    public int getPhoneNum()
+    private int getPhoneNum()
     {
         return phoneNum;
     }
 
-    public int getAge()
+    private int getAge()
     {
         return age;
+    }
+
+    private String getOrg()
+    {
+        return organisation;
     }
 
     public String toString()
     {
 
-        return "Name: " + getName() + "|| Email: " + getEmail() + "|| Phone: " + getPhoneNum()+ " ||" + "Age: " + getAge();
+        return "Name: " + getName() + "|| Email: " + getEmail() + "|| Phone: " + getPhoneNum()+ " ||" + "Age: " + getAge() + "Organisation: " + getOrg();
     }
 
 

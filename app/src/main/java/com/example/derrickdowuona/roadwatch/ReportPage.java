@@ -1,5 +1,6 @@
 package com.example.derrickdowuona.roadwatch;
 
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -11,7 +12,9 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
+import android.webkit.MimeTypeMap;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -22,6 +25,8 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -37,13 +42,20 @@ public class ReportPage extends AppCompatActivity
     Button uploadImg;
     Button btnTakePhoto;
     Button postBtn;
+    EditText description;
     ProgressBar mProgressBar;
     String mCurrentPhotoPath;
+
     FirebaseAuth mAuth;
     FirebaseUser currentUser;
     FirebaseStorage storage;
     StorageReference storageRef;
-    private Uri uri;
+    private FirebaseDatabase mDatabase;
+    private DatabaseReference myRef;
+    private Uri FilePathUri;
+
+    // Folder path for Firebase Storage.
+    String Storage_Path = "Images/";
 
     static final int REQUEST_IMAGE_CAPTURE  = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
@@ -58,7 +70,10 @@ public class ReportPage extends AppCompatActivity
 
         mAuth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
-        storageRef = storage.getReference("photos");
+        storageRef = storage.getReference(Storage_Path);
+
+        mDatabase = FirebaseDatabase.getInstance();
+        myRef = mDatabase.getReference("report");
 
         mProgressBar = findViewById(R.id.progressBar2);
         mProgressBar.setVisibility(View.GONE);
@@ -70,6 +85,7 @@ public class ReportPage extends AppCompatActivity
         imgURi = findViewById(R.id.imgUri);
         btnTakePhoto = findViewById(R.id.btnTakePhoto);
         postBtn = findViewById(R.id.btnPost);
+        description = findViewById(R.id.txtDescr);
 
         //get data from prev activity and display
         Intent intent = getIntent();
@@ -106,9 +122,11 @@ public class ReportPage extends AppCompatActivity
             @Override
             public void onClick(View view)
             {
-                if (imgView.getDrawable() == null || uri == null)
+                final String descr = description.getText().toString();
+
+                if (imgView.getDrawable() == null || FilePathUri == null || descr.isEmpty())
                 {
-                    Toast.makeText(ReportPage.this,  "Please upload an image first", Toast.LENGTH_LONG).show();
+                    Toast.makeText(ReportPage.this,  "Please upload media and write comment first", Toast.LENGTH_LONG).show();
                 }
                 else
                 {
@@ -119,18 +137,39 @@ public class ReportPage extends AppCompatActivity
                     //get file path of selected image and upload to storage on firebase
                     currentUser = mAuth.getCurrentUser();
                     String uid = currentUser.getUid();
-                    StorageReference filepath = storageRef.child("photos/" + uid + "/").child(uri.getLastPathSegment());
-                    filepath.putFile(uri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
+                    final String displayName = uname.getText().toString();
+
+
+//                    StorageReference filepath = storageRef.child("photos" + uid + "/").child(Storage_Path + System.currentTimeMillis()
+//                            + "." + GetFileExtension(FilePathUri));
+
+                    StorageReference filepath = storageRef.child(Storage_Path + "/" + uid + "/").child(System.currentTimeMillis()
+                            + "." + GetFileExtension(FilePathUri));
+
+                    Log.w(TAG, "FILEPATH: " + filepath);
+
+                    filepath.putFile(FilePathUri).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>()
                     {
                         @Override
                         public void onSuccess(UploadTask.TaskSnapshot taskSnapshot)
                         {
+                            String downloadUri = taskSnapshot.getDownloadUrl().toString();
+
+                            createNewReport(downloadUri, descr, displayName);
+                            Log.w(TAG, "URI: " + FilePathUri + "_______DOWNLOAD URI::::; " + downloadUri);
+
                             mProgressBar.setVisibility(View.GONE);
+                            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
                             Toast.makeText(ReportPage.this,  "Upload Successful", Toast.LENGTH_LONG).show();
+
+                            description.setText(null);
+                            imgView.setImageResource(R.color.common_google_signin_btn_tint);
+
                         }
                     });
                     //
-                    filepath.putFile(uri).addOnFailureListener(new OnFailureListener()
+                    filepath.putFile(FilePathUri).addOnFailureListener(new OnFailureListener()
                     {
                         @Override
                         public void onFailure(@NonNull Exception exception)
@@ -144,6 +183,17 @@ public class ReportPage extends AppCompatActivity
         });
 
     }//onCreate
+
+    ///POST OBJECT
+    public void createNewReport(String uri, String description, String username)
+    {
+        Report report = new Report(uri, description, username);
+        String uid = myRef.push().getKey();
+        myRef.child(uid).setValue(report);
+
+        Log.w(TAG, "POST DETAILS===================" + report.toString());
+    }
+
 
     public void onStart() {
         super.onStart();
@@ -183,21 +233,18 @@ public class ReportPage extends AppCompatActivity
             {
                 Log.w(TAG, "INSIDE UPLOAD PHOTO SECTION");
                 //get uri of selected image and display it in imageview
-                uri = data.getData();
-                imgURi.setText(uri.toString());
+                FilePathUri = data.getData();
+                imgURi.setText(FilePathUri.toString());
                 Bitmap bitmap;
                 try
                 {
-                    bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
+                    bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(FilePathUri));
                     imgView.setImageBitmap(bitmap);
                 } catch (FileNotFoundException e)
                 {
                     e.printStackTrace();
                     Log.w(TAG, "FILE NOT FOUND");
                 }
-//                imgURi.setText(uri.toString());
-//                final Bitmap photo = (Bitmap) data.getExtras().get("data");
-//                imgView.setImageBitmap(photo);
             }
             else
             {
@@ -206,42 +253,27 @@ public class ReportPage extends AppCompatActivity
 
             Bitmap bitmap;
             try {
-                bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(uri));
+                bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(FilePathUri));
                 imgView.setImageBitmap(bitmap);
             } catch (FileNotFoundException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
 
-        }//END result code
+        }
+    }//END result code}
 
-        /**
-         *  postBtn.setOnClickListener(new View.OnClickListener()
-         {
-         @Override
-         public void onClick(View view)
-         {
-         //forward all data to UploadImg page
-         Log.w(TAG,"CONTINUE BUTTON CLICKED");
-         Intent intent = new Intent(ReportPage.this, UploadImg.class);
-         intent.putExtra("BitmapImage", photo);
-         startActivity(intent);
-         }
-         });
-         */
+        // Creating Method to get the selected image file Extension from File Path URI.
+        public String GetFileExtension(Uri uri)
+        {
+        ContentResolver contentResolver = getContentResolver();
+
+        MimeTypeMap mimeTypeMap = MimeTypeMap.getSingleton();
+
+        // Returning the file Extension.
+        return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri)) ;
+
     }
-
-//    public void uploadImage()
-
-    public void continueToUpload(Bitmap bitmapImg)
-    {
-        //forward all data to UploadImg page
-        Log.w(TAG,"CONTINUE BUTTON CLICKED");
-        Intent intent = new Intent(ReportPage.this, UploadImg.class);
-        intent.putExtra("BitmapImage", bitmapImg);
-        startActivity(intent);
-    }
-
 
 //    private File createImageFile() throws IOException {
 //        // Create an image file name

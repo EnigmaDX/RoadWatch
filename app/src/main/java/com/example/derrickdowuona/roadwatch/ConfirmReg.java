@@ -36,19 +36,25 @@ public class ConfirmReg extends AppCompatActivity {
     TextView uname;
     EditText email;
     EditText password;
-    FirebaseAuth mAuth;
-    private FirebaseDatabase mDatabase;
-    private DatabaseReference myRef;
+    EditText organaisation;
     ProgressBar mProgressBar;
     Button sendCodeBtn;
     EditText phoneText;
-    ProgressBar hobar;
+    TextView errorText;
+
+    FirebaseAuth mAuth;
+    private FirebaseDatabase mDatabase;
+    private DatabaseReference myRef;
+    private String mVerificationId;
+    PhoneAuthProvider.ForceResendingToken mResendToken;
     PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
 
     int phone = 0;
     int age = 0;
     String emailStr;
     String userName;
+    private String phoneNumber;
+    private String orgStr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -58,13 +64,9 @@ public class ConfirmReg extends AppCompatActivity {
 
         uname = findViewById(R.id.uname);
         email = findViewById(R.id.txtEmail);
+        organaisation = findViewById(R.id.txtOrg);
         mProgressBar = findViewById(R.id.progressBar3);
-        password = findViewById(R.id.txtPass);
-        sendCodeBtn = findViewById(R.id.btnSendCode);
-        phoneText = findViewById(R.id.phoneText);
-        hobar = findViewById(R.id.progressBar4);
-
-        hobar.setVisibility(View.GONE);
+        errorText = findViewById(R.id.errorTxt);
         mProgressBar.setVisibility(View.GONE);
 
         mAuth = FirebaseAuth.getInstance();
@@ -82,41 +84,79 @@ public class ConfirmReg extends AppCompatActivity {
             emailStr = extras.getString("EMAIL");
             phone = extras.getInt("PHONE");
             age = extras.getInt("AGE");
+            orgStr = extras.getString("ORG");
         }
 
         uname.setText(userName);
-        email.setText(emailStr);
 
-        sendCodeBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                hobar.setVisibility(View.VISIBLE);
-                String phoneNumber = String.valueOf(phone);
+         phoneNumber = String.valueOf(phone);
 
-                PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                        phoneNumber,        // Phone number to verify
-                        60,                 // Timeout duration
-                        TimeUnit.SECONDS,   // Unit of timeout
-                        ConfirmReg.this,               // Activity (for callback binding)
-                        mCallbacks);        // OnVerificationStateChangedCallbacks
-            }
-        });
-
+        final String finalUserName = userName;
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
             @Override
-            public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential) {
+            public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential)
+            {
+                //TODO ONCE CODE IS VERIFIED,CALL CREATE USER FXN
 
+                createNewUser(finalUserName,emailStr, phone, age, orgStr);
+                signInWithPhoneAuthCredential(phoneAuthCredential);
             }
 
             @Override
-            public void onVerificationFailed(FirebaseException e) {
+            public void onVerificationFailed(FirebaseException e)
+            {
+                errorText.setText("THERE WAS AN ERROR IN CODE VERification");
+                errorText.setVisibility(View.VISIBLE);
+            }
 
+
+            public void onCodeSent(String verificationId,
+                                   PhoneAuthProvider.ForceResendingToken token) {
+                // The SMS verification code has been sent to the provided phone number, we
+                // now need to ask the user to enter the code and then construct a credential
+                // by combining the code with a verification ID.
+                Log.d(TAG, "onCodeSent:" + verificationId);
+
+                // Save verification ID and resending token so we can use them later
+                mVerificationId = verificationId;
+                mResendToken = token;
+
+                errorText.setText("CLICK CONFIRM TO VERIFY CODE");
             }
         };
 
+
     }//ENDcreate
 
-    private void signInWithPhoneAuthCredential(PhoneAuthCredential credential) {
+    ///USER
+    public void createNewUser(String name, String email, int phone, int age, String organaisation)
+    {
+        Users user = new Users(name, email, phone, age, organaisation);
+        String uid = myRef.push().getKey();
+        myRef.child(uid).setValue(user);
+
+        Log.w(TAG, "USER DETAILS===================" + user.toString());
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Check if user is signed in (non-null) and update UI accordingly.
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String phoneNumber = String.valueOf(phone);
+
+        PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                phoneNumber,        // Phone number to verify
+                60,                 // Timeout duration
+                TimeUnit.SECONDS,   // Unit of timeout
+                ConfirmReg.this,               // Activity (for callback binding)
+                mCallbacks);        // OnVerificationStateChangedCallbacks
+    }//ENDstart
+
+
+
+    private void signInWithPhoneAuthCredential(PhoneAuthCredential credential)
+    {
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
@@ -126,9 +166,20 @@ public class ConfirmReg extends AppCompatActivity {
                             Log.d(TAG, "signInWithCredential:success");
 
                             FirebaseUser user = task.getResult().getUser();
-                            // ...
-                        } else {
+                            // TODO CREATE INTENT TO SEND USER TO HOMEPAGE AND CALL FINISH()
+                            uname = findViewById(R.id.uname);
+                            String uName = uname.getText().toString();
+                            Log.d(TAG, "UNAME PASSING TO INTENT==========" + uName);
+                            Intent intentHome = new Intent(ConfirmReg.this, HomePage.class);
+                            intentHome.putExtra("USERNAME", uName);
+                            startActivity(intentHome);
+                            finish();
+                        }
+                        else
+                            {
                             // Sign in failed
+                            errorText.setText("THERE WAS AN ERROR IN CODE");
+                            errorText.setVisibility(View.VISIBLE);
                             Log.w(TAG, "signInWithCredential:failure", task.getException());
                             if (task.getException() instanceof FirebaseAuthInvalidCredentialsException) {
                                 // The verification code entered was invalid
@@ -138,13 +189,21 @@ public class ConfirmReg extends AppCompatActivity {
                 });
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-    }
+    //send user data to next page
+    public void sendData(String username)
+    {
+        Log.w(TAG,"SEND DATA FXN CALLED, USERNAME: " + username);
+        Intent intentHome = new Intent(ConfirmReg.this, HomePage.class);
+//        Bundle extras = new Bundle();
+//        extras.putString("USERNAME", username);
+//        extras.putString("EMAIL", email);
+//        extras.putInt("PHONE", phone);
+//        extras.putInt("AGE", age);
 
+        intentHome.putExtra("USERNAME", username);
+        startActivity(intentHome);
+        finish();
+    }
 
 
 //    public void signInUserClick(View view)
@@ -158,7 +217,6 @@ public class ConfirmReg extends AppCompatActivity {
 
     public void createUser() {
         email = findViewById(R.id.txtEmail);
-        password = findViewById(R.id.txtPass);
 
         final String emailStr = email.getText().toString();
         String passStr = email.getText().toString();
@@ -241,33 +299,6 @@ mAuth.createUserWithEmailAndPassword(emailStr, passStr)
 //                });
 //    }
 
-
-    //send user data to next page
-    public void sendData(String username, String email, int phone, int age)
-    {
-        Intent intentHome = new Intent(ConfirmReg.this, HomePage.class);
-//        Bundle extras = new Bundle();
-//        extras.putString("USERNAME", username);
-//        extras.putString("EMAIL", email);
-//        extras.putInt("PHONE", phone);
-//        extras.putInt("AGE", age);
-
-        intentHome.putExtra("USERNAME", username);
-        startActivity(intentHome);
-        finish();
-    }
-
-    ///USER
-    public void createNewUser(String name, String email, int phone, int age)
-    {
-        Users user = new Users(name, email, phone, age);
-
-        String uid = myRef.push().getKey();
-
-        myRef.child(uid).setValue(user);
-
-        Log.w(TAG, "USER DETAILS===================" + user.toString());
-    }
 
 
 

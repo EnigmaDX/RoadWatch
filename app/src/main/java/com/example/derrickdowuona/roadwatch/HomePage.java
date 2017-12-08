@@ -8,12 +8,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class HomePage extends AppCompatActivity {
 
     private static final String TAG = ConfirmReg.class.getSimpleName();
 
     TextView unameText;
     Button reportCrimeBtn;
+    Button logoutBtn;
+    FirebaseAuth mAuth;
 
 
     @Override
@@ -21,15 +25,28 @@ public class HomePage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page2);
 
+        mAuth = FirebaseAuth.getInstance();
+
         Intent homeIntent = getIntent();
         Bundle extras = homeIntent.getExtras();
         String userName = null;
 
         unameText = findViewById(R.id.username);
         reportCrimeBtn = findViewById(R.id.btnReport);
+        logoutBtn = findViewById(R.id.btnLogout);
 
             userName = getIntent().getStringExtra("USERNAME");
             unameText.setText(userName);
+
+
+            //logout user
+        logoutBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mAuth.signOut();
+                sendBackToMainPage();
+            }
+        });
 
         final String finalUserName = userName;
         reportCrimeBtn.setOnClickListener(new View.OnClickListener()
@@ -53,6 +70,12 @@ public class HomePage extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void sendBackToMainPage()
+    {
+        Intent backIntent = new Intent(HomePage.this, RegisterActivity.class);
+        finish();
     }
 
 
