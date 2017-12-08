@@ -65,7 +65,7 @@
         android:id="@+id/btnLogout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marg  inEnd="8dp"
+        android:layout_marg_inEnd="8dp"
         android:layout_marginTop="8dp"
         android:text="logout"
         app:layout_constraintEnd_toEndOf="parent"
