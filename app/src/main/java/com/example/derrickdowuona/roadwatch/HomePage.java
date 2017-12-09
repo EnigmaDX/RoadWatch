@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class HomePage extends AppCompatActivity {
 
@@ -47,6 +49,10 @@ public class HomePage extends AppCompatActivity {
                 sendBackToMainPage();
             }
         });
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder().setDisplayName(userName).build();
+        currentUser.updateProfile(profileUpdate);
 
         final String finalUserName = userName;
         reportCrimeBtn.setOnClickListener(new View.OnClickListener()

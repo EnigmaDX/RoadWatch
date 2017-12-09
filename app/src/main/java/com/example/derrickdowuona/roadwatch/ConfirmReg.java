@@ -16,12 +16,15 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.FirebaseException;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -37,6 +40,7 @@ public class ConfirmReg extends AppCompatActivity {
     EditText email;
     EditText password;
     EditText organaisation;
+    EditText vCode;
     ProgressBar mProgressBar;
     Button sendCodeBtn;
     EditText phoneText;
@@ -53,6 +57,7 @@ public class ConfirmReg extends AppCompatActivity {
     int age = 0;
     String emailStr;
     String userName;
+    String passStr;
     private String phoneNumber;
     private String orgStr;
 
@@ -68,6 +73,9 @@ public class ConfirmReg extends AppCompatActivity {
         mProgressBar = findViewById(R.id.progressBar3);
         errorText = findViewById(R.id.errorTxt);
         mProgressBar.setVisibility(View.GONE);
+        sendCodeBtn = findViewById(R.id.btnSendCode);
+        phoneText = findViewById(R.id.phoneText);
+        vCode = findViewById(R.id.vCode);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -82,6 +90,7 @@ public class ConfirmReg extends AppCompatActivity {
         if (extras != null) {
             userName = extras.getString("USERNAME");
             emailStr = extras.getString("EMAIL");
+            passStr = extras.getString("PASS");
             phone = extras.getInt("PHONE");
             age = extras.getInt("AGE");
             orgStr = extras.getString("ORG");
@@ -90,6 +99,25 @@ public class ConfirmReg extends AppCompatActivity {
         uname.setText(userName);
 
          phoneNumber = String.valueOf(phone);
+         phoneText.setText(phoneNumber);
+
+        sendCodeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view)
+            {
+                phoneText.setEnabled(FALSE);
+                sendCodeBtn.setEnabled(FALSE);
+                mProgressBar.setVisibility(View.VISIBLE);
+//                String phoneNumber = phoneText.getText().toString();
+
+                PhoneAuthProvider.getInstance().verifyPhoneNumber(
+                        phoneNumber,        // Phone number to verify
+                        60,                 // Timeout duration
+                        TimeUnit.SECONDS,   // Unit of timeout
+                        ConfirmReg.this,               // Activity (for callback binding)
+                        mCallbacks);        // OnVerificationStateChangedCallbacks
+            }
+        });
 
         final String finalUserName = userName;
         mCallbacks = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
@@ -97,16 +125,19 @@ public class ConfirmReg extends AppCompatActivity {
             public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential)
             {
                 //TODO ONCE CODE IS VERIFIED,CALL CREATE USER FXN
+                Toast.makeText(ConfirmReg.this, "PHONE VERIFIED", Toast.LENGTH_SHORT).show();
 
                 createNewUser(finalUserName,emailStr, phone, age, orgStr);
+
                 signInWithPhoneAuthCredential(phoneAuthCredential);
             }
 
             @Override
             public void onVerificationFailed(FirebaseException e)
             {
-                errorText.setText("THERE WAS AN ERROR IN CODE VERification");
+                errorText.setText("THERE WAS AN ERROR IN CODE VERification...Check your phone number");
                 errorText.setVisibility(View.VISIBLE);
+                mProgressBar.setVisibility(View.GONE);
             }
 
 
@@ -138,23 +169,6 @@ public class ConfirmReg extends AppCompatActivity {
         Log.w(TAG, "USER DETAILS===================" + user.toString());
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        String phoneNumber = String.valueOf(phone);
-
-        PhoneAuthProvider.getInstance().verifyPhoneNumber(
-                phoneNumber,        // Phone number to verify
-                60,                 // Timeout duration
-                TimeUnit.SECONDS,   // Unit of timeout
-                ConfirmReg.this,               // Activity (for callback binding)
-                mCallbacks);        // OnVerificationStateChangedCallbacks
-    }//ENDstart
-
-
-
     private void signInWithPhoneAuthCredential(PhoneAuthCredential credential)
     {
         mAuth.signInWithCredential(credential)
@@ -170,8 +184,12 @@ public class ConfirmReg extends AppCompatActivity {
                             uname = findViewById(R.id.uname);
                             String uName = uname.getText().toString();
                             Log.d(TAG, "UNAME PASSING TO INTENT==========" + uName);
-                            Intent intentHome = new Intent(ConfirmReg.this, HomePage.class);
-                            intentHome.putExtra("USERNAME", uName);
+                            Intent intentHome = new Intent(ConfirmReg.this, SignInToRoadWatch.class);
+
+                            Bundle extras = new Bundle();
+                            extras.putString("PASS",passStr);
+                            extras.putString("USERNAME",uName);
+                            intentHome.putExtras(extras);
                             startActivity(intentHome);
                             finish();
                         }
@@ -213,6 +231,37 @@ public class ConfirmReg extends AppCompatActivity {
 //                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
 //        password.setEnabled(FALSE);
 //        createUser();
+//    }
+
+//    public void createUserEmPass()
+//    {
+//        mAuth.createUserWithEmailAndPassword(emailStr, passStr)
+//                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+//                    @Override
+//                    public void onComplete(@NonNull Task<AuthResult> task) {
+//                        if (task.isSuccessful())
+//                        {
+//                            // Sign in success, update UI with the signed-in user's information
+//                            Toast.makeText(ConfirmReg.this, "SUCCESSFULLY REGISTERED", Toast.LENGTH_SHORT).show();
+//
+//                            FirebaseUser user = mAuth.getCurrentUser();
+//                            mProgressBar.setVisibility(View.GONE);
+//
+//                            signInUser(userName, emailStr, phone, age);
+//                        }
+//                        else
+//                        {
+//                            // If sign in fails, display a message to the user.
+//                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
+//                            Toast.makeText(ConfirmReg.this, "Authentication failed.",
+//                                    Toast.LENGTH_SHORT).show();
+//                            mProgressBar.setVisibility(View.GONE);
+//                               getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+//                        }
+//
+//                        // ...
+//                    }
+//                });
 //    }
 
     public void createUser() {

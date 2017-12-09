@@ -101,7 +101,13 @@ public class ReportPage extends AppCompatActivity
             @Override
             public void onClick(View view)
             {
-                dispatchTakePictureIntent();
+                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+//
+//                // Ensure that there's a camera activity to handle the intent
+//                if (takePictureIntent.resolveActivity(getPackageManager()) != null)
+//                {
+                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+//                }
             }
         });
 
@@ -164,7 +170,6 @@ public class ReportPage extends AppCompatActivity
                             Toast.makeText(ReportPage.this,  "Upload Successful", Toast.LENGTH_LONG).show();
 
                             description.setText(null);
-                            imgView.setImageResource(R.color.common_google_signin_btn_tint);
 
                         }
                     });
@@ -184,6 +189,62 @@ public class ReportPage extends AppCompatActivity
 
     }//onCreate
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if(resultCode != RESULT_CANCELED && data !=null)
+        {
+            mProgressBar.setVisibility(View.GONE);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+            //CAMERA
+            if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK)
+            {
+                //insert camera process
+                Bundle extras = data.getExtras();
+                Bitmap imageBitmap = (Bitmap) extras.get("data");
+                imgView.setImageBitmap(imageBitmap);
+                Toast.makeText(ReportPage.this,  "Gotten Camera image", Toast.LENGTH_LONG).show();
+            }
+
+            //UPLOAD IMAGE
+            else if (requestCode ==REQUEST_UPLOAD_PHOTO && resultCode == RESULT_OK)
+            {
+                    Log.w(TAG, "INSIDE UPLOAD PHOTO SECTION");
+                    //get uri of selected image and display it in imageview
+                    FilePathUri = data.getData();
+                    imgURi.setText(FilePathUri.toString());
+                    Bitmap bitmap;
+                    try
+                    {
+                        bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(FilePathUri));
+                        imgView.setImageBitmap(bitmap);
+                    } catch (FileNotFoundException e)
+                    {
+                        e.printStackTrace();
+                        Log.w(TAG, "FILE NOT FOUND");
+                    }
+            }
+            else
+            {
+                Log.w(TAG, "UNKNOWN REQUEST CODE");
+            }
+
+            Bitmap bitmap;
+            try {
+                bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(FilePathUri));
+                imgView.setImageBitmap(bitmap);
+            } catch (FileNotFoundException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            Toast.makeText(ReportPage.this,  "DATA PROLY NULL", Toast.LENGTH_LONG).show();
+        }
+    }//END result code}
+
     ///POST OBJECT
     public void createNewReport(String uri, String description, String username)
     {
@@ -201,68 +262,6 @@ public class ReportPage extends AppCompatActivity
         currentUser = mAuth.getCurrentUser();
     }
 
-
-    private void dispatchTakePictureIntent()
-    {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null)
-        {
-            startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-        }
-    }
-
-
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        if(resultCode != RESULT_CANCELED)
-        {
-            mProgressBar.setVisibility(View.GONE);
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
-            //CAMERA
-            if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK)
-            {
-                //insert camera process
-            }
-
-            //UPLOAD IMAGE
-            else if (requestCode ==REQUEST_UPLOAD_PHOTO && resultCode == RESULT_OK)
-            {
-                Log.w(TAG, "INSIDE UPLOAD PHOTO SECTION");
-                //get uri of selected image and display it in imageview
-                FilePathUri = data.getData();
-                imgURi.setText(FilePathUri.toString());
-                Bitmap bitmap;
-                try
-                {
-                    bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(FilePathUri));
-                    imgView.setImageBitmap(bitmap);
-                } catch (FileNotFoundException e)
-                {
-                    e.printStackTrace();
-                    Log.w(TAG, "FILE NOT FOUND");
-                }
-            }
-            else
-            {
-                Log.w(TAG, "UNKNOWN REQUEST CODE");
-            }
-
-            Bitmap bitmap;
-            try {
-                bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(FilePathUri));
-                imgView.setImageBitmap(bitmap);
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-        }
-    }//END result code}
-
         // Creating Method to get the selected image file Extension from File Path URI.
         public String GetFileExtension(Uri uri)
         {
@@ -274,21 +273,4 @@ public class ReportPage extends AppCompatActivity
         return mimeTypeMap.getExtensionFromMimeType(contentResolver.getType(uri)) ;
 
     }
-
-//    private File createImageFile() throws IOException {
-//        // Create an image file name
-//        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-//        String imageFileName = "JPEG_" + timeStamp + "_";
-//        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-//        File image = File.createTempFile(
-//                imageFileName,  /* prefix */
-//                ".jpg",         /* suffix */
-//                storageDir      /* directory */
-//        );
-//
-//        // Save a file: path for use with ACTION_VIEW intents
-//        mCurrentPhotoPath = image.getAbsolutePath();
-//        Log.w(TAG, "CurrentPath: " + mCurrentPhotoPath);
-//        return image;
-//    }
 }

@@ -35,7 +35,9 @@ public class RegisterActivity extends AppCompatActivity {
     private EditText phone;
     private EditText age;
     private EditText organisation;
+    private EditText password;
     private Button buttonSend;
+    private Button login;
     private FirebaseUser currentUser;
     private FirebaseAuth mAuth;
 
@@ -53,6 +55,8 @@ public class RegisterActivity extends AppCompatActivity {
         age      = findViewById(R.id.txtAge);
         organisation = findViewById(R.id.txtOrg);
         buttonSend = findViewById(R.id.btnReg);
+        login = findViewById(R.id.btnLogin);
+        password = findViewById(R.id.txtPass);
 
         mAuth = FirebaseAuth.getInstance();
 
@@ -64,26 +68,36 @@ public class RegisterActivity extends AppCompatActivity {
                 verifyAndSendData();
             }
         });
+
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intentSignIn = new Intent(RegisterActivity.this, SignInToRoadWatch.class);
+                startActivity(intentSignIn);
+                finish();
+            }
+        });
+
     }//END onCreate
 
 
-//    @Override
-//    public void onStart() {
-//        super.onStart();
-//        // If user is signed in, got to homepage and never return here again!!
-//        currentUser = mAuth.getCurrentUser();
-//        if(currentUser != null)
-//        {
-//            Intent homeIntent = new Intent(RegisterActivity.this, HomePage.class);
-//            String userName = currentUser.getDisplayName();
-//
-//            Bundle extras = new Bundle();
-//            extras.putString("USERNAME",userName);
-//            homeIntent.putExtras(extras);
-//            startActivity(homeIntent);
-//            finish();
-//        }
-//    }
+    @Override
+    public void onStart() {
+        super.onStart();
+        // If user is signed in, got to homepage and never return here again!!
+        currentUser = mAuth.getCurrentUser();
+        if(currentUser != null)
+        {
+            Intent homeIntent = new Intent(RegisterActivity.this, HomePage.class);
+            String userName = currentUser.getDisplayName();
+
+            Bundle extras = new Bundle();
+            extras.putString("USERNAME",userName);
+            homeIntent.putExtras(extras);
+            startActivity(homeIntent);
+        }
+    }
 
     public void verifyAndSendData()
     {
@@ -92,6 +106,7 @@ public class RegisterActivity extends AppCompatActivity {
         final String phoneStr = phone.getText().toString();
         final String ageStr = age.getText().toString();
         final String organisationStr = organisation.getText().toString();
+        final String passStr = password.getText().toString();
 
         int phoneInt = 0;
         int ageInt = 0;
@@ -110,15 +125,19 @@ public class RegisterActivity extends AppCompatActivity {
             ex.printStackTrace();
         }
 
-        if(!(usernameStr.equals("")) && !(emailStr.equals("")) && !(phoneStr.equals("")) && !(ageStr.equals("")))
+        if(!(usernameStr.equals("")) && !(emailStr.equals("")) && !(phoneStr.equals("")) && !(ageStr.equals("")) && !(passStr.equals("")))
         {
-            Intent intentConfirm = new Intent(RegisterActivity.this, ConfirmReg.class);
+            Intent intentConfirm = new Intent(RegisterActivity.this, SignInToRoadWatch.class);
             Bundle extras = new Bundle();
             extras.putString("USERNAME",usernameStr);
             extras.putString("EMAIL",emailStr);
+            extras.putString("PASS",passStr);
             extras.putInt("PHONE",phoneInt);
             extras.putInt("AGE",ageInt);
             extras.putString("ORG",organisationStr);
+
+
+            createUserEmail(emailStr,passStr);
 
             intentConfirm.putExtras(extras);
             startActivity(intentConfirm);
@@ -128,6 +147,33 @@ public class RegisterActivity extends AppCompatActivity {
         {
             Toast.makeText(RegisterActivity.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
         }
+    }
+
+    public void createUserEmail(String emailStrr, String passStrr)
+    {
+         emailStrr = email.getText().toString();
+         passStrr = phone.getText().toString();
+        //create user with email
+        mAuth.createUserWithEmailAndPassword(emailStrr, passStrr)
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                    @Override
+                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        if (task.isSuccessful()) {
+                            // Sign in success, update UI with the signed-in user's information
+                            Log.d(TAG, "createUserWithEmail:success");
+                            Toast.makeText(RegisterActivity.this, "Created",Toast.LENGTH_SHORT).show();
+                            FirebaseUser user = mAuth.getCurrentUser();
+
+                        } else {
+                            // If sign in fails, display a message to the user.
+                            Log.w(TAG, "createUserWithEmail:failure", task.getException());
+                            Toast.makeText(RegisterActivity.this, "Authentication failed.",
+                                    Toast.LENGTH_SHORT).show();
+                        }
+
+                        // ...
+                    }
+                });
     }
 
 
