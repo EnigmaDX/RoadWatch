@@ -1,12 +1,15 @@
 package com.example.derrickdowuona.roadwatch;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -31,7 +34,11 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class ReportPage extends AppCompatActivity
 {
@@ -55,7 +62,6 @@ public class ReportPage extends AppCompatActivity
     private Uri FilePathUri;
 
     // Folder path for Firebase Storage.
-    String Storage_Path = "Images/";
 
     static final int REQUEST_IMAGE_CAPTURE  = 1;
     static final int REQUEST_TAKE_PHOTO = 1;
@@ -70,7 +76,7 @@ public class ReportPage extends AppCompatActivity
 
         mAuth = FirebaseAuth.getInstance();
         storage = FirebaseStorage.getInstance();
-        storageRef = storage.getReference(Storage_Path);
+        storageRef = storage.getReference("Images/");
 
         mDatabase = FirebaseDatabase.getInstance();
         myRef = mDatabase.getReference("report");
@@ -101,13 +107,15 @@ public class ReportPage extends AppCompatActivity
             @Override
             public void onClick(View view)
             {
-                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
+                dispatchTakePictureIntent();
+               // Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 //
-//                // Ensure that there's a camera activity to handle the intent
-//                if (takePictureIntent.resolveActivity(getPackageManager()) != null)
+////                // Ensure that there's a camera activity to handle the intent
+////                if (takePictureIntent.resolveActivity(getPackageManager()) != null)
 //                {
-                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-//                }
+//                    startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+////                }
             }
         });
 
@@ -149,7 +157,7 @@ public class ReportPage extends AppCompatActivity
 //                    StorageReference filepath = storageRef.child("photos" + uid + "/").child(Storage_Path + System.currentTimeMillis()
 //                            + "." + GetFileExtension(FilePathUri));
 
-                    StorageReference filepath = storageRef.child(Storage_Path + "/" + uid + "/").child(System.currentTimeMillis()
+                    StorageReference filepath = storageRef.child(uid + "/").child(System.currentTimeMillis()
                             + "." + GetFileExtension(FilePathUri));
 
                     Log.w(TAG, "FILEPATH: " + filepath);
@@ -166,6 +174,9 @@ public class ReportPage extends AppCompatActivity
 
                             mProgressBar.setVisibility(View.GONE);
                             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE);
+
+                            Intent backIntent = new Intent(ReportPage.this, HomePage.class);
+                            startActivity(backIntent);
 
                             Toast.makeText(ReportPage.this,  "Upload Successful", Toast.LENGTH_LONG).show();
 
@@ -188,6 +199,69 @@ public class ReportPage extends AppCompatActivity
         });
 
     }//onCreate
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // If user is signed in, got to homepage and never return here again!!
+        currentUser = mAuth.getCurrentUser();
+        if(currentUser != null)
+        {
+            String userID = currentUser.getUid();
+            uname.setText(userID);
+            uname.setVisibility(View.VISIBLE);
+            Log.d(TAG, "USERS ID+++++++++++++++++++++++" + userID);
+//            register.setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            Log.d(TAG, "NOOOOOOOOOOO USSSSSSSSSSSEEEEEEEEEEEERRRRRRRRRRRRRR");
+        }
+    }
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Ensure that there's a camera activity to handle the intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                String authorities = getApplicationContext().getPackageName() + ".fileprovider";
+                Uri photoURI = FileProvider.getUriForFile(this,authorities,photoFile);
+                Log.w(TAG, "PHOTO URIIIIIIIIIIIIIIIIIIIII== " + photoURI);
+                Log.w(TAG, "PHOTO FILLLLLLLLLEEEEEEEEEEEE== " + photoFile);
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+            }
+            else
+            {
+                Toast.makeText(ReportPage.this,  "PHOTO FILE IS NULLLLLLLL", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        @SuppressLint("SimpleDateFormat") String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        mCurrentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data)
@@ -229,19 +303,10 @@ public class ReportPage extends AppCompatActivity
             {
                 Log.w(TAG, "UNKNOWN REQUEST CODE");
             }
-
-            Bitmap bitmap;
-            try {
-                bitmap = BitmapFactory.decodeStream(getContentResolver().openInputStream(FilePathUri));
-                imgView.setImageBitmap(bitmap);
-            } catch (FileNotFoundException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
         }
         else
         {
-            Toast.makeText(ReportPage.this,  "DATA PROLY NULL", Toast.LENGTH_LONG).show();
+            Toast.makeText(ReportPage.this,  "DATA NULL////////////" + data, Toast.LENGTH_LONG).show();
         }
     }//END result code}
 
@@ -255,12 +320,6 @@ public class ReportPage extends AppCompatActivity
         Log.w(TAG, "POST DETAILS===================" + report.toString());
     }
 
-
-    public void onStart() {
-        super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        currentUser = mAuth.getCurrentUser();
-    }
 
         // Creating Method to get the selected image file Extension from File Path URI.
         public String GetFileExtension(Uri uri)

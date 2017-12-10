@@ -125,7 +125,6 @@ public class ConfirmReg extends AppCompatActivity {
             public void onVerificationCompleted(PhoneAuthCredential phoneAuthCredential)
             {
                 //TODO ONCE CODE IS VERIFIED,CALL CREATE USER FXN
-                Toast.makeText(ConfirmReg.this, "PHONE VERIFIED", Toast.LENGTH_SHORT).show();
 
                 createNewUser(finalUserName,emailStr, phone, age, orgStr);
 
@@ -166,6 +165,7 @@ public class ConfirmReg extends AppCompatActivity {
         String uid = myRef.push().getKey();
         myRef.child(uid).setValue(user);
 
+        Toast.makeText(ConfirmReg.this, "PHONE VERIFIED, ACCOUNT CREATED", Toast.LENGTH_SHORT).show();
         Log.w(TAG, "USER DETAILS===================" + user.toString());
     }
 
@@ -184,11 +184,20 @@ public class ConfirmReg extends AppCompatActivity {
                             uname = findViewById(R.id.uname);
                             String uName = uname.getText().toString();
                             Log.d(TAG, "UNAME PASSING TO INTENT==========" + uName);
-                            Intent intentHome = new Intent(ConfirmReg.this, SignInToRoadWatch.class);
+                            Intent intentHome = new Intent(ConfirmReg.this, HomePage
+                                    .class);
 
                             Bundle extras = new Bundle();
+
                             extras.putString("PASS",passStr);
                             extras.putString("USERNAME",uName);
+
+                            FirebaseUser currentUser = mAuth.getCurrentUser();
+                            UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder().setDisplayName(uName).build();
+                            currentUser.updateProfile(profileUpdate);
+                            Log.d(TAG, "DisplayName curr uerrrrrrrrrrrrrrrrrrrrrrrrrrrrr" + currentUser.getDisplayName());
+                            Log.d(TAG, "CurrrrrrrrrrUAser" + currentUser.getUid());
+
                             intentHome.putExtras(extras);
                             startActivity(intentHome);
                             finish();

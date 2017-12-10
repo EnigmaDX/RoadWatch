@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -20,6 +21,7 @@ public class HomePage extends AppCompatActivity {
     Button reportCrimeBtn;
     Button logoutBtn;
     FirebaseAuth mAuth;
+    FirebaseUser currentUser;
 
 
     @Override
@@ -33,12 +35,19 @@ public class HomePage extends AppCompatActivity {
         Bundle extras = homeIntent.getExtras();
         String userName = null;
 
+        if(extras !=null)
+        {
+            userName = extras.getString("USERNAME");
+        }
+        else
+        {
+            Toast.makeText(HomePage.this, "Username from extra intent null", Toast.LENGTH_SHORT).show();
+        }
+
+
         unameText = findViewById(R.id.username);
         reportCrimeBtn = findViewById(R.id.btnReport);
         logoutBtn = findViewById(R.id.btnLogout);
-
-            userName = getIntent().getStringExtra("USERNAME");
-            unameText.setText(userName);
 
 
             //logout user
@@ -50,9 +59,9 @@ public class HomePage extends AppCompatActivity {
             }
         });
 
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder().setDisplayName(userName).build();
-        currentUser.updateProfile(profileUpdate);
+//        FirebaseUser currentUser = mAuth.getCurrentUser();
+//        UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder().setDisplayName(userName).build();
+//        currentUser.updateProfile(profileUpdate);
 
         final String finalUserName = userName;
         reportCrimeBtn.setOnClickListener(new View.OnClickListener()
@@ -62,21 +71,33 @@ public class HomePage extends AppCompatActivity {
             {
                 Intent reportIntent = new Intent(HomePage.this, ReportPage.class);
 //                String uname = unameText.getText().toString();
-                Log.w(TAG, "UNAAAAAAME::::::::::" + finalUserName);
-
-                if(finalUserName !=null)
-                {
-                    reportIntent.putExtra("USERNAME", finalUserName);
-                    startActivity(reportIntent);
-                }
-                else
-                {
-                    Log.w(TAG, "UNAME NOT FOUND!!!!!!!!!");
-                }
+                Log.w(TAG, "ID::::::::::" + currentUser.getUid());
+//                    reportIntent.putExtra("USERNAME", finalUserName);
+                startActivity(reportIntent);
             }
         });
 
     }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // If user is signed in, got to homepage and never return here again!!
+        currentUser = mAuth.getCurrentUser();
+        if(currentUser != null)
+        {
+            String userID = currentUser.getUid();
+            unameText.setText(userID);
+            unameText.setVisibility(View.VISIBLE);
+            Log.d(TAG, "USERS ID+++++++++++++++++++++++" + userID);
+//            register.setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            Log.d(TAG, "NOOOOOOOOOOO USSSSSSSSSSSEEEEEEEEEEEERRRRRRRRRRRRRR");
+        }
+    }
+
 
     public void sendBackToMainPage()
     {

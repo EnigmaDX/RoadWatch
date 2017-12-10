@@ -30,7 +30,9 @@ public class SignInToRoadWatch extends AppCompatActivity {
     Button signin;
     Button register;
     String emailStr;
+    String passwordStr;
     String userNameStr;
+    FirebaseUser currentUser;
     FirebaseAuth mAuth;
     ProgressBar loginBar;
     TextView unameText;
@@ -40,20 +42,34 @@ public class SignInToRoadWatch extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
 
-        Intent intent = getIntent();
-        Bundle extras = intent.getExtras();
-//        passwordStr = extras.getString("PASS");
-
         email = findViewById(R.id.emailtxt);
         password = findViewById(R.id.passwordtxt);
         signin = findViewById(R.id.signInBtn);
         register = findViewById(R.id.regBtn);
         loginBar = findViewById(R.id.logInBar);
-        unameText = findViewById(R.id.username);
+        unameText = findViewById(R.id.usernametxt);
         password = findViewById(R.id.passwordtxt);
 
-//        userNameStr = getIntent().getStringExtra("USERNAME");
-//        unameText.setText(userNameStr);
+        Intent intent = getIntent();
+        Bundle extras = intent.getExtras();
+        if(extras !=null)
+        {
+            passwordStr = extras.getString("PASS");
+            emailStr = extras.getString("EMAIL");
+        }
+        else {
+            // If sign in fails, display a message to the user.
+            Log.w(TAG, "EEEEEEEEEEEXXXXXXXXTTTTTTTTRRRRRRRRRAAAAAAAASSSSSSSSS NNNNNNUUUUULLLLLLL");
+            Toast.makeText(SignInToRoadWatch.this, "NNNNNNUUUUULLLLLLL",
+                    Toast.LENGTH_SHORT).show();
+        }
+
+
+        email.setText(emailStr);
+        password.setText(passwordStr);
+
+
+//        userNameStr = getIntent().getStringE`
 
         loginBar.setVisibility(View.INVISIBLE);
 
@@ -61,6 +77,8 @@ public class SignInToRoadWatch extends AppCompatActivity {
 
         emailStr = email.getText().toString();
         final String passwordStr = password.getText().toString();
+
+
         Log.w(TAG, "Password content=============" + passwordStr);
 
 
@@ -68,10 +86,10 @@ public class SignInToRoadWatch extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-//                if(!(emailStr.equals(""))  !(passwordStr.equals("")))
+//                if(!(emailStr.equals("")) && !(passwordStr.equals("")))
 //                {
                     signInUser(emailStr, passwordStr);
-
+//                }
 //                else
 //                {
 //                    Toast.makeText(SignInToRoadWatch.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
@@ -94,11 +112,31 @@ public class SignInToRoadWatch extends AppCompatActivity {
     }//end ONcREATE
 
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        // If user is signed in, got to homepage and never return here again!!
+        currentUser = mAuth.getCurrentUser();
+        if(currentUser != null)
+        {
+            String userEmail = currentUser.getEmail();
+            unameText.setText(userEmail);
+            unameText.setVisibility(View.VISIBLE);
+            Log.d(TAG, "USERS EMAIL+++++++++++++++++++++++" + userEmail);
+//            register.setVisibility(View.INVISIBLE);
+        }
+        else
+        {
+            Log.d(TAG, "NOOOOOOOOOOO USSSSSSSSSSSEEEEEEEEEEEERRRRRRRRRRRRRR");
+        }
+    }
+
+
     public void signInUser(String emaill, String passwordd)
     {
             loginBar.setVisibility(View.VISIBLE);
-        String emailStr = email.getText().toString();
-        String passStr = password.getText().toString();
+        String emailStr = email.getText().toString().trim();
+        String passStr = password.getText().toString().trim();
 
             //sign in user with email and password
         Log.d(TAG, "em pass+++++++++++++++++++++++" + passStr);
@@ -115,8 +153,6 @@ public class SignInToRoadWatch extends AppCompatActivity {
 
                                 FirebaseUser user = mAuth.getCurrentUser();
                                 Log.w(TAG, "current user::::" + user);
-//                                UserProfileChangeRequest profileUpdate = new UserProfileChangeRequest.Builder().setDisplayName(userNameStr).build();
-//                                user.updateProfile(profileUpdate);
 
                                 Intent intentHome = new Intent(SignInToRoadWatch.this, HomePage.class);
                                 startActivity(intentHome);

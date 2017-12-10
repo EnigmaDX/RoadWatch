@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -40,6 +41,9 @@ public class RegisterActivity extends AppCompatActivity {
     private Button login;
     private FirebaseUser currentUser;
     private FirebaseAuth mAuth;
+    private FirebaseDatabase mDatabase;
+    private DatabaseReference myRef;
+    private ProgressBar progressBar;
 
 
     public PhoneAuthProvider.OnVerificationStateChangedCallbacks mCallbacks;
@@ -57,8 +61,13 @@ public class RegisterActivity extends AppCompatActivity {
         buttonSend = findViewById(R.id.btnReg);
         login = findViewById(R.id.btnLogin);
         password = findViewById(R.id.txtPass);
+        progressBar = findViewById(R.id.pBar);
+
 
         mAuth = FirebaseAuth.getInstance();
+
+        mDatabase = FirebaseDatabase.getInstance();
+        myRef = mDatabase.getReference("user");
 
         buttonSend.setOnClickListener(new View.OnClickListener()
         {
@@ -89,13 +98,9 @@ public class RegisterActivity extends AppCompatActivity {
         currentUser = mAuth.getCurrentUser();
         if(currentUser != null)
         {
-            Intent homeIntent = new Intent(RegisterActivity.this, HomePage.class);
+            Intent continueIntent = new Intent(RegisterActivity.this, HomePage.class);
             String userName = currentUser.getDisplayName();
-
-            Bundle extras = new Bundle();
-            extras.putString("USERNAME",userName);
-            homeIntent.putExtras(extras);
-            startActivity(homeIntent);
+            startActivity(continueIntent);
         }
     }
 
@@ -108,40 +113,10 @@ public class RegisterActivity extends AppCompatActivity {
         final String organisationStr = organisation.getText().toString();
         final String passStr = password.getText().toString();
 
-        int phoneInt = 0;
-        int ageInt = 0;
-        try{
-            phoneInt = Integer.parseInt(phoneStr);
-            Log.i("",phoneInt+" is a number");
-        }catch(NumberFormatException ex){
-            Log.i("",phoneInt+" is NOT a number");
-            ex.printStackTrace();
-        }
-
-        try{
-             ageInt = Integer.parseInt(ageStr);
-        }catch(NumberFormatException ex){
-            Log.i("",ageInt+" is NOT a number");
-            ex.printStackTrace();
-        }
-
         if(!(usernameStr.equals("")) && !(emailStr.equals("")) && !(phoneStr.equals("")) && !(ageStr.equals("")) && !(passStr.equals("")))
         {
-            Intent intentConfirm = new Intent(RegisterActivity.this, SignInToRoadWatch.class);
-            Bundle extras = new Bundle();
-            extras.putString("USERNAME",usernameStr);
-            extras.putString("EMAIL",emailStr);
-            extras.putString("PASS",passStr);
-            extras.putInt("PHONE",phoneInt);
-            extras.putInt("AGE",ageInt);
-            extras.putString("ORG",organisationStr);
-
-
-            createUserEmail(emailStr,passStr);
-
-            intentConfirm.putExtras(extras);
-            startActivity(intentConfirm);
-            finish();
+            progressBar.setVisibility(View.VISIBLE);
+            createUserEmail();
         }
         else
         {
@@ -149,25 +124,70 @@ public class RegisterActivity extends AppCompatActivity {
         }
     }
 
-    public void createUserEmail(String emailStrr, String passStrr)
+    public void createUserEmail()
     {
-         emailStrr = email.getText().toString();
-         passStrr = phone.getText().toString();
+         String emailStrr = email.getText().toString();
+        String passStrr = phone.getText().toString();
+
         //create user with email
         mAuth.createUserWithEmailAndPassword(emailStrr, passStrr)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>()
+                {
                     @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
+                    public void onComplete(@NonNull Task<AuthResult> task)
+                    {
+                        if (task.isSuccessful())
+                        {
+                            progressBar.setVisibility(View.GONE);
                             // Sign in success, update UI with the signed-in user's information
                             Log.d(TAG, "createUserWithEmail:success");
                             Toast.makeText(RegisterActivity.this, "Created",Toast.LENGTH_SHORT).show();
-                            FirebaseUser user = mAuth.getCurrentUser();
+
+                            Intent intentConfirm = new Intent(RegisterActivity.this, ConfirmReg.class);
+
+                            final String usernameStr = username.getText().toString();
+                            final String emailStr = email.getText().toString();
+                            final String phoneStr = phone.getText().toString();
+                            final String ageStr = age.getText().toString();
+                            final String organisationStr = organisation.getText().toString();
+                            final String passStr = password.getText().toString();
+
+                            int phoneInt = 0;
+                            int ageInt = 0;
+                            try{
+                                phoneInt = Integer.parseInt(phoneStr);
+                                Log.i("",phoneInt+" is a number");
+                            }catch(NumberFormatException ex){
+                                Log.i("",phoneInt+" is NOT a number");
+                                ex.printStackTrace();
+                            }
+
+                            try{
+                                ageInt = Integer.parseInt(ageStr);
+                            }catch(NumberFormatException ex){
+                                Log.i("",ageInt+" is NOT a number");
+                                ex.printStackTrace();
+                            }
+
+                            createNewUser(usernameStr,emailStr, phoneInt, ageInt, organisationStr);
+
+                            Bundle extras = new Bundle();
+                            extras.putString("USERNAME",usernameStr);
+                            extras.putString("EMAIL",emailStr);
+                            extras.putString("PASS",passStr);
+                            extras.putInt("PHONE",phoneInt);
+                            extras.putInt("AGE",ageInt);
+                            extras.putString("ORG",organisationStr);
+
+                            intentConfirm.putExtras(extras);
+                            startActivity(intentConfirm);
+                            finish();
 
                         } else {
                             // If sign in fails, display a message to the user.
+                            progressBar.setVisibility(View.GONE);
                             Log.w(TAG, "createUserWithEmail:failure", task.getException());
-                            Toast.makeText(RegisterActivity.this, "Authentication failed.",
+                            Toast.makeText(RegisterActivity.this, task.getException().toString(),
                                     Toast.LENGTH_SHORT).show();
                         }
 
@@ -176,7 +196,13 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
+    public void createNewUser(String name, String email, int phone, int age, String organaisation)
+    {
+        Users user = new Users(name, email, phone, age, organaisation);
+        String uid = myRef.push().getKey();
+        myRef.child(uid).setValue(user);
 
-
+        Log.w(TAG, "USER DETAILS===================" + user.toString());
+    }
 
 }
