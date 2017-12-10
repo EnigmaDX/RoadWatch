@@ -50,20 +50,6 @@ public class SignInToRoadWatch extends AppCompatActivity {
         unameText = findViewById(R.id.usernametxt);
         password = findViewById(R.id.passwordtxt);
 
-        Intent intent = getIntent();
-        Bundle extras = intent.getExtras();
-        if(extras !=null)
-        {
-            passwordStr = extras.getString("PASS");
-            emailStr = extras.getString("EMAIL");
-        }
-        else {
-            // If sign in fails, display a message to the user.
-            Log.w(TAG, "EEEEEEEEEEEXXXXXXXXTTTTTTTTRRRRRRRRRAAAAAAAASSSSSSSSS NNNNNNUUUUULLLLLLL");
-            Toast.makeText(SignInToRoadWatch.this, "NNNNNNUUUUULLLLLLL",
-                    Toast.LENGTH_SHORT).show();
-        }
-
 
         email.setText(emailStr);
         password.setText(passwordStr);
@@ -86,15 +72,7 @@ public class SignInToRoadWatch extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-//                if(!(emailStr.equals("")) && !(passwordStr.equals("")))
-//                {
-                    signInUser(emailStr, passwordStr);
-//                }
-//                else
-//                {
-//                    Toast.makeText(SignInToRoadWatch.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
-//                }
-
+                verifyAndSend();
             }
         });
 
@@ -131,6 +109,17 @@ public class SignInToRoadWatch extends AppCompatActivity {
         }
     }
 
+    public void verifyAndSend()
+    {
+        if(!(emailStr.equals("")) && !(passwordStr.equals("")))
+        {
+           signInUser(emailStr, passwordStr);
+        }
+        else
+        {
+            Toast.makeText(SignInToRoadWatch.this, "Please fill all fields", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     public void signInUser(String emaill, String passwordd)
     {

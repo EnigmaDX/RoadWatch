@@ -37,10 +37,10 @@
     <Button
         android:id="@+id/btnReport"
         android:layout_width="277dp"
-        android:layout_height="70dp"
+        android:layout_height="97dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="144dp"
+        android:layout_marginTop="204dp"
         android:backgroundTint="@android:color/holo_blue_bright"
         android:text="report crime"
         android:textColor="@android:color/background_light"
@@ -49,21 +49,6 @@
         app:layout_constraintHorizontal_bias="0.505"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/btnViewRecords"
-        android:layout_width="277dp"
-        android:layout_height="70dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="44dp"
-        android:backgroundTint="@android:color/holo_blue_light"
-        android:text="view records"
-        android:textColor="@android:color/background_light"
-        android:textSize="25sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnReport" />
 
     <Button
         android:id="@+id/btnLogout"
